@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Conquest-Self-Confidence Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="animated-bg"></div>
+
+    <main class="app">
+      <header class="header">
+        <div class="avatar" id="avatar">🌱</div>
+        <div class="level-info">
+          <h1 id="levelTitle">Beginner</h1>
+          <p id="levelDesc">Stay focused and level up!</p>
+        </div>
+        <div class="level-badge" id="levelBadge">1</div>
+      </header>
+      <!-- top nav: actions / pages -->
+      <nav class="top-nav">
+        <button id="navHome" class="btn nav primary">Home</button>
+        <button id="navHistory" class="btn nav">History</button>
+      </nav>
+        <!-- Onboarding modal shown on first visit -->
+        <div id="onboarding" class="modal hidden">
+          <div class="modal-card">
+            <h2>Welcome to Conquest.</h2>
+            <p class="muted">Each day you’ll get one actionable mission that trains your mindset.</p>
+            <p class="muted">Complete it, gain XP, and level up your real-life confidence.</p>
+            <div class="modal-actions">
+                <button id="startBtn" class="btn primary onboard-start">Let’s go</button>
+              </div>
+          </div>
+        </div>
+
+        <!-- Small welcome back / micro copy area -->
+        <div id="microCopy" class="micro-copy hidden">Welcome back, conqueror.</div>
+
+        <!-- Rotating success quotes -->
+        <div id="quoteArea" class="quote-area"></div>
+        <div class="settings-row">
+          <label class="small-toggle"><input id="toggleQuotes" type="checkbox" checked> Show rotating quotes</label>
+        </div>
+
+      <section class="progress-section">
+        <svg class="progress-ring" viewBox="0 0 200 200">
+          <circle class="progress-ring__background" cx="100" cy="100" r="90" />
+          <circle class="progress-ring__progress" id="progressCircle" cx="100" cy="100" r="90" />
+        </svg>
+        <div class="progress-text">
+          <div><span id="xpValue">0</span> / <span id="xpNeeded">100</span> XP</div>
+          <div><span id="progressPercent">0%</span> to next level</div>
+          <div>🔥 <span id="streakValue">0</span> day streak</div>
+          <div style="margin-top:8px;"><button id="shareBtn" class="btn muted">Share the app</button></div>
+        </div>
+      </section>
+
+      <section id="homePage" class="task-section">
+        <div id="taskCard" class="task-card">Click below to start your first task!</div>
+        <div class="task-buttons">
+          <button id="getTaskBtn" class="btn primary">🎯 Get Task</button>
+          <button id="completeBtn" class="btn primary success hidden">✅ Complete</button>
+          <button id="skipBtn" class="btn primary danger hidden">⏭ Skip</button>
+            <!-- Rating panel shown after completing a task -->
+            <div id="ratingPanel" class="rating-panel hidden">
+              <div class="rating-title">How did this feel?</div>
+              <div class="rating-buttons">
+                <button data-rating="meh" class="btn">Meh</button>
+                <button data-rating="good" class="btn primary">Good</button>
+                <button data-rating="powerful" class="btn success">Powerful</button>
+              </div>
+            </div>
+        </div>
+      </section>
+
+      <!-- History page (hidden by default) -->
+      <section id="historyPage" class="hidden page">
+        <h2>Recent Tasks</h2>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <section class="badges-section">
+        <h2>🏅 Badges (<span id="badgeCount">0</span>)</h2>
+        <div id="badgesGrid" class="badges-grid"></div>
+        <h3 class="goals-title">Goals to achieve</h3>
+        <div id="availableBadges" class="available-badges" aria-label="Available goals to unlock"></div>
+      </section>
+
+      <div id="message" class="message"></div>
+
+      <!-- Level up modal -->
+      <div id="levelUpModal" class="modal hidden">
+        <div class="modal-card">
+          <h2 id="levelUpTitle">Level Up</h2>
+          <p id="levelUpText">You did it — stronger missions unlocked.</p>
+          <div class="modal-actions">
+            <button id="levelUpClose" class="btn primary">Nice</button>
+          </div>
+        </div>
+      </div>
+
+      <footer style="text-align: center; font-size: 0.9rem; padding: 1rem; color: #666;">
+        <a href="legalnotice.html" style="margin-right: 1rem; text-decoration: none; color: inherit;">Legal Notice</a>
+        <a href="privacypolicy.html" style="text-decoration: none; color: inherit;">Privacy Policy</a>
+      </footer>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- Share preview modal -->
+    <div id="sharePreviewModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>Share Conquest</h3>
+        <p class="muted">Edit the message below then press Share to open your device share sheet.</p>
+        <textarea id="sharePreviewText" style="width:100%;min-height:80px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;resize:vertical;">Try Conquest — a 1-step daily mission to build self-confidence. Give it a shot: </textarea>
+        <div class="modal-actions">
+          <button id="sharePreviewConfirm" class="btn primary">Share</button>
+          <button id="sharePreviewCancel" class="btn muted">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cookie consent banner -->
+    <div id="cookieBanner" class="cookie-banner hidden">
+      <div class="cookie-inner">
+        <div>We use analytics to improve the app. Accept cookies to enable anonymous usage tracking.</div>
+        <div class="cookie-actions">
+          <button id="cookieDecline" class="btn muted">Decline</button>
+          <button id="cookieAccept" class="btn primary">Accept</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin (local only) - PIN protected private visits file -->
+    <div id="adminPanel" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <h3>Admin: Private Visits</h3>
+        <div id="adminLocked">
+          <p class="muted">This panel is stored locally in your browser. Set a PIN to protect it.</p>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="setPinInput" type="password" placeholder="New PIN" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;" />
+            <button id="setPinBtn" class="btn primary">Set PIN</button>
+          </div>
+          <hr style="opacity:0.06;margin:12px 0;" />
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="unlockPinInput" type="password" placeholder="Enter PIN to unlock" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;" />
+            <button id="unlockPinBtn" class="btn primary">Unlock</button>
+          </div>
+        </div>
+        <div id="adminUnlocked" class="hidden">
+          <div style="margin-bottom:8px;">Private visits (only you can see/edit):</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <input id="adminVisitsInput" type="number" min="0" style="width:120px;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;" />
+            <button id="adminSaveBtn" class="btn success">Save</button>
+            <button id="adminIncrementBtn" class="btn primary">+1</button>
+            <button id="adminDecrementBtn" class="btn muted">-1</button>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input id="adminAutoTrack" type="checkbox"> Auto-track on cookie Accept</label>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+            <button id="adminExportBtn" class="btn">Export</button>
+            <input id="adminImportFile" type="file" accept="application/json" style="display:none;" />
+            <button id="adminImportBtn" class="btn">Import</button>
+            <button id="adminClearBtn" class="btn muted">Clear</button>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+            <button id="adminLockBtn" class="btn muted">Lock</button>
+            <button id="adminClose" class="btn primary">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Hidden admin hotspot (bottom-right). Long-press or triple-click to open admin panel -->
+  <div id="adminHotspot" aria-hidden="true"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
