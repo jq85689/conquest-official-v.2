@@ -264,29 +264,73 @@ function showConfetti() {
 // Placeholder analytics loader: run only when cookie consent is granted
 function enableAnalytics() {
   if (window._plausibleLoaded) return;
-  window._plausibleLoaded = true;
+  // Mark that we've started loading to avoid duplicate insertion
+  window._plausibleLoaded = false;
+  window._plausibleQueue = window._plausibleQueue || [];
   try {
-    // Insert the exact Plausible snippet provided (privacy-friendly). It will only be added after consent.
     const s = document.createElement('script');
     s.async = true;
+    // site-specific script path (keeps your existing provided snippet)
     s.src = 'https://plausible.io/js/pa-iwkgLWAKszlZHlnC3HYRv.js';
+    s.onload = () => {
+      try {
+        window._plausibleLoaded = true;
+        window.plausible = window.plausible || function () { (plausible.q = plausible.q || []).push(arguments); };
+        window.plausible.init = window.plausible.init || function (i) { plausible.o = i || {}; };
+        try { window.plausible.init(); } catch (e) { /* ignore */ }
+        console.log('[analytics] Plausible loaded');
+        // flush queued events
+        try {
+          while (window._plausibleQueue && window._plausibleQueue.length) {
+            const ev = window._plausibleQueue.shift();
+            try { window.plausible(ev.name, ev.props || {}); } catch (e) { /* ignore per-event */ }
+          }
+        } catch (e) { console.warn('[analytics] queue flush error', e); }
+      } catch (err) {
+        console.warn('[analytics] onload handling failed', err);
+      }
+    };
+    s.onerror = (e) => { console.warn('[analytics] Plausible script failed to load', e); };
     document.head.appendChild(s);
-
-    // initialize the global plausible function safely
-    window.plausible = window.plausible || function () { (plausible.q = plausible.q || []).push(arguments); };
-    window.plausible.init = window.plausible.init || function (i) { plausible.o = i || {}; };
-    try { window.plausible.init(); } catch (e) { /* ignore */ }
-    console.log('[analytics] Plausible injected');
+    console.log('[analytics] Plausible script element appended');
   } catch (err) {
-    console.warn('[analytics] failed to load Plausible', err);
+    console.warn('[analytics] failed to insert Plausible script', err);
   }
 }
 
 // helper to send custom events to Plausible safely
 function plausibleEvent(name, props) {
   try {
+    // if Plausible hasn't finished loading, queue the event
+    if (!window._plausibleLoaded) {
+      window._plausibleQueue = window._plausibleQueue || [];
+      window._plausibleQueue.push({ name, props });
+      console.log('[analytics] queued event', name, props);
+      return;
+    }
     if (window.plausible) window.plausible(name, props || {});
-  } catch (e) { /* noop */ }
+  } catch (e) { console.warn('[analytics] plausibleEvent failed', e); }
+}
+
+// Update analytics status UI in the footer
+function updateAnalyticsStatus() {
+  try {
+    const s = localStorage.getItem('conquest_cookie_consent');
+    const el = document.getElementById('analyticsState');
+    const btn = document.getElementById('analyticsToggleBtn');
+    if (el) {
+      if (s === 'granted') el.textContent = 'On';
+      else if (s === 'denied') el.textContent = 'Off';
+      else el.textContent = 'Ask';
+    }
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const banner = document.getElementById('cookieBanner');
+        if (banner) banner.classList.remove('hidden');
+        try { banner.style.display = ''; } catch (e) {}
+      });
+    }
+  } catch (e) { /* ignore */ }
 }
 
 function updateUI() {
@@ -830,6 +874,7 @@ loadTasks().then(tasks => {
     cookieBanner && (cookieBanner.classList.add('hidden'));
     // analytics only (admin private counter handled by admin panel settings)
     enableAnalytics();
+    updateAnalyticsStatus();
   });
 
   if (cookieDecline) cookieDecline.addEventListener('click', () => {
@@ -837,10 +882,13 @@ loadTasks().then(tasks => {
     cookieBanner && (cookieBanner.classList.add('hidden'));
     // don't increment visits or load analytics when denied
     try { showToast && showToast('Analytics disabled — thanks for choosing privacy.'); } catch (e) {}
+    updateAnalyticsStatus();
   });
 
   // enable analytics if previously granted
   if (localStorage.getItem('conquest_cookie_consent') === 'granted') enableAnalytics();
+  // ensure analytics status shows current state
+  try { updateAnalyticsStatus(); } catch (e) {}
 });
 
 updateUI();
@@ -952,10 +1000,50 @@ createParticles();
     if (!v) return showToast('Enter a PIN to set');
     if (v.length < 4) return showToast('PIN must be at least 4 characters');
     const h = await sha256Hex(v);
+    // if a PIN already exists, disallow blind overwrite; require Change PIN flow
+    if (localStorage.getItem(ADMIN_PIN_KEY)) {
+      return showToast('A PIN already exists. Use Change PIN to update it');
+    }
     localStorage.setItem(ADMIN_PIN_KEY, h);
     showToast('PIN set — keep it safe');
+    // hide set row and show change row now that a PIN exists
+    try { if (setPinInput) setPinInput.value = ''; } catch (e) {}
+    refreshAdminPinUI();
+  }
+
+  // Change PIN requires current PIN verification
+  async function changePin() {
+    const cur = (document.getElementById('currentPinInput') && document.getElementById('currentPinInput').value || '').trim();
+    const neu = (document.getElementById('newPinInput') && document.getElementById('newPinInput').value || '').trim();
+    if (!cur) return showToast('Enter current PIN');
+    if (!neu || neu.length < 4) return showToast('New PIN must be at least 4 characters');
+    const curH = await sha256Hex(cur);
+    const stored = localStorage.getItem(ADMIN_PIN_KEY);
+    if (!stored) return showToast('No existing PIN found');
+    if (curH !== stored) {
+      const fails = getFailures() + 1; setFailures(fails);
+      if (fails >= 5) { setLockUntil(Date.now() + 5*60*1000); return showToast('Too many failed attempts — locked for 5 minutes'); }
+      return showToast('Current PIN incorrect');
+    }
+    const newH = await sha256Hex(neu);
+    localStorage.setItem(ADMIN_PIN_KEY, newH);
     // clear inputs
-    setPinInput.value = '';
+    try { document.getElementById('currentPinInput').value = ''; document.getElementById('newPinInput').value = ''; } catch (e) {}
+    showToast('PIN changed');
+    refreshAdminPinUI();
+  }
+
+  function refreshAdminPinUI() {
+    const has = !!localStorage.getItem(ADMIN_PIN_KEY);
+    const setRow = document.getElementById('setPinRow');
+    const changeRow = document.getElementById('changePinRow');
+    if (has) {
+      if (setRow) setRow.style.display = 'none';
+      if (changeRow) changeRow.style.display = '';
+    } else {
+      if (setRow) setRow.style.display = '';
+      if (changeRow) changeRow.style.display = 'none';
+    }
   }
 
   async function unlockWithPin() {
@@ -1094,6 +1182,8 @@ createParticles();
       });
     }
   setPinBtn && setPinBtn.addEventListener('click', setPin);
+  const changePinBtn = document.getElementById('changePinBtn');
+  changePinBtn && changePinBtn.addEventListener('click', changePin);
   unlockPinBtn && unlockPinBtn.addEventListener('click', unlockWithPin);
   adminSaveBtn && adminSaveBtn.addEventListener('click', adminSave);
   adminIncrementBtn && adminIncrementBtn.addEventListener('click', () => { adminInc(); loadAdminVisitsToUI(); });
@@ -1111,6 +1201,8 @@ createParticles();
 
   // initialize UI state: hide unlocked area by default
   if (adminUnlocked) adminUnlocked.classList.add('hidden');
+  // Show appropriate set/change rows depending on whether PIN exists
+  try { refreshAdminPinUI(); } catch (e) {}
   // reset auto-lock when interacting
   document.addEventListener('mousemove', resetAdminAutoLock);
   document.addEventListener('keydown', resetAdminAutoLock);

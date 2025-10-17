@@ -110,6 +110,10 @@
       <footer style="text-align: center; font-size: 0.9rem; padding: 1rem; color: #666;">
         <a href="legalnotice.html" style="margin-right: 1rem; text-decoration: none; color: inherit;">Legal Notice</a>
         <a href="privacypolicy.html" style="text-decoration: none; color: inherit;">Privacy Policy</a>
+        <div id="analyticsStatus" style="margin-top:8px;font-size:0.85rem;color:#999;">
+          Analytics: <strong id="analyticsState">Off</strong>
+          <button id="analyticsToggleBtn" class="btn muted" style="margin-left:8px;padding:4px 8px;font-size:0.85rem;">Manage</button>
+        </div>
       </footer>
     </main>
 
@@ -145,9 +149,14 @@
         <h3>Admin: Private Visits</h3>
         <div id="adminLocked">
           <p class="muted">This panel is stored locally in your browser. Set a PIN to protect it.</p>
-          <div style="display:flex;gap:8px;margin-top:8px;">
+          <div id="setPinRow" style="display:flex;gap:8px;margin-top:8px;">
             <input id="setPinInput" type="password" placeholder="New PIN" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;" />
             <button id="setPinBtn" class="btn primary">Set PIN</button>
+          </div>
+          <div id="changePinRow" style="display:none;gap:8px;margin-top:8px;">
+            <input id="currentPinInput" type="password" placeholder="Current PIN" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;" />
+            <input id="newPinInput" type="password" placeholder="New PIN" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;" />
+            <button id="changePinBtn" class="btn primary">Change PIN</button>
           </div>
           <hr style="opacity:0.06;margin:12px 0;" />
           <div style="display:flex;gap:8px;align-items:center;">

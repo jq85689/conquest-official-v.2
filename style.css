@@ -365,6 +365,10 @@ body {
 
 /* Slightly offset admin panel for owner UX */
 #adminPanel .modal-card { max-width: 420px; }
+
+/* Analytics status badge */
+#analyticsStatus { display:inline-flex; align-items:center; gap:8px; }
+#analyticsStatus strong { color: var(--accent, #0b77ff); }
 .cookie-banner.hidden { display: none; }
 
 /* Share preview modal tweaks (reuse modal styles) */
