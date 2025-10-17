@@ -374,13 +374,14 @@ function renderTask(task) {
     dom.taskCard.textContent = 'No task available.';
     return;
   }
+  const xpLine = (typeof task.xp === 'number' && task.xp > 0) ? `<div style="color:var(--accent);">+${task.xp} XP</div>` : '';
   dom.taskCard.innerHTML = `
     <div class="task-header">
       <div><strong>${task.category || ''}</strong> • ${task.time || ''}</div>
       <div class="task-difficulty">${getDifficultyStars(task.difficulty || 1)}</div>
     </div>
     <div class="task-body">${task.task}</div>
-    <div style="color:var(--accent);">+${task.xp || 0} XP</div>
+    ${xpLine}
   `;
 }
 
@@ -907,9 +908,10 @@ function renderHistory() {
   items.forEach(it => {
     const div = document.createElement('div');
     div.className = 'history-item';
+    const xpDisplay = (typeof it.xp === 'number' && it.xp > 0) ? `${it.xp} XP` : '';
     div.innerHTML = `<div>
       <div><strong>${it.task}</strong></div>
-      <div class="meta">${it.category} · ${it.xp} XP</div>
+      <div class="meta">${it.category}${xpDisplay ? ' · ' + xpDisplay : ''}</div>
     </div>
     <div class="meta">${it.rating}</div>`;
     list.appendChild(div);

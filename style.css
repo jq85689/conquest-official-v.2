@@ -268,13 +268,23 @@ body {
 /* Rating panel */
 .rating-panel {
   margin-top: 10px;
-  background: rgba(255,255,255,0.03);
-  padding: 10px;
-  border-radius: 10px;
-}
-.rating-title { font-weight:700; margin-bottom:8px; }
+  background: var(--card-bg);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.03);
+ }
+.rating-title { font-weight:700; margin-bottom:8px; color: rgba(224,224,255,0.95); }
 .rating-buttons { display:flex; gap:8px; justify-content:center; }
-.rating-buttons .btn { padding:8px 12px; border-radius:8px; }
+.rating-buttons .btn { padding:8px 12px; border-radius:10px; font-weight:700; }
+.rating-buttons .btn.muted { background: rgba(255,255,255,0.04); color: rgba(224,224,255,0.92); box-shadow:none; }
+.rating-buttons .btn.primary { background: linear-gradient(180deg,#0b77ff,#0066d6); }
+.rating-buttons .btn.success { background: linear-gradient(180deg,#32d583,#18b65a); }
+
+/* rating button emoji tweaks */
+.rating-buttons .emoji { margin-left: 6px; font-size: 1.05rem; display: inline-block; transform: translateY(1px); }
+.rating-buttons .btn { min-width: 84px; font-weight:700; }
+.rating-buttons .btn.primary { padding:8px 14px; }
+.rating-buttons .btn.success { padding:8px 14px; }
 
 .badges-grid {
   display: grid;
